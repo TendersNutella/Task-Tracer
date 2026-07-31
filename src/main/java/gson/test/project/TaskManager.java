@@ -1,14 +1,18 @@
 package gson.test.project;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.google.gson.Gson;
+
+import java.io.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskManager {
     private Instant instant = Instant.now();
+    private Gson gson = new Gson();
+    private List<TaskData> tasks  ;
 
-    public TaskManager(){
+    public TaskManager()  {
 
     }
 
@@ -18,8 +22,26 @@ public class TaskManager {
     }
 
     // Method that will allow to list all the task
-    public void listTasks(TaskCollection tasks){
+    public void listTasks(){
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+            if (CommonConstant.JSON_FILE_PATH.exists()) {
+                this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
 
+                for (TaskData t : this.tasks){
+                    System.out.println(t);
+                }
+
+            } else if (CommonConstant.JSON_FILE_PATH.length() <= 0) {
+                System.out.println("'tasks.json' is empty");
+                tasks = new ArrayList<>();
+            } else {
+                System.out.println("Unable to find 'tasks.json' file");
+                tasks = new ArrayList<>();
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+            tasks = new ArrayList<>();
+        }
     }
 
     // Method that will allow to get a specific task display
