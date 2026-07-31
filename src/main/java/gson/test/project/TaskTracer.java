@@ -14,7 +14,8 @@ public class TaskTracer {
 //        taskManager.addTask("Vendre colis");
 //        taskManager.listTasks();
 //        taskManager.displayTask(15);
-        taskManager.deleteTask(3);
+//        taskManager.deleteTask(3);
+
 
 
 //        // Get a specific value from the tasks

@@ -6,11 +6,13 @@ import java.io.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class TaskManager {
     private Instant instant = Instant.now();
     private Gson gson = new Gson();
     private List<TaskData> tasks;
+    private Scanner scanner;
 
     public TaskManager()  {
 
@@ -104,9 +106,27 @@ public class TaskManager {
         }
     }
 
-    public void getSpecificValue(String value){
+    public String getSpecificValue(String value, int taskID){
+        // TODO : work on the behavior of this method and add a selector of a specific value
+        //  like a switch case that let you choose between getting the description, the id, or even
+        //  the date where the task was created
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+            this.scanner = new Scanner(System.in);
 
-}
+            value = this.tasks.stream()
+                    .filter(taskData -> taskData.getTaskID() == taskID)
+                    .findFirst()
+                    .map(TaskData::getDescription)
+                    .orElse("Unable to find the task");
+
+            return value;
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        return "Unable to get the value asked";
+    }
 
     // Method that will allow the program to update the description of any task
     public void updateTask(String description, String updatedAt) throws IOException {
