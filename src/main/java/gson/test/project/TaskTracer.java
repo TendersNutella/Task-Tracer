@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.Scanner;
 
 public class TaskTracer {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         TaskManager taskManager = new TaskManager();
-        taskManager.addTask("Vendre colis");
-        taskManager.listTasks();
-        taskManager.displayTask(15);
+//        taskManager.addTask("Vendre colis");
+//        taskManager.listTasks();
+//        taskManager.displayTask(15);
+        taskManager.deleteTask(3);
 
 
 //        // Get a specific value from the tasks
@@ -45,22 +46,5 @@ public class TaskTracer {
 //            e.printStackTrace();
 //        }
 //
-//        // Delete an object
-//        int idToDelete = 9;
-//        boolean removed = tasks.removeIf(td -> td.getTaskID() == idToDelete);
-//
-//        if (removed) {
-//            System.out.println("Tache supprimée");
-//        }else {
-//            System.out.println("Tache introuvable");
-//        }
-//
-//       taskCollection = new TaskCollection(tasks);
-//
-//        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("tasks.json"))) {
-//            gson.toJson(taskCollection, bufferedWriter);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
     }
 }

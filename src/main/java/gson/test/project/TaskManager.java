@@ -104,9 +104,15 @@ public class TaskManager {
         }
     }
 
-    // Method that will allow the program to update the description of any task
-    public void updateTask(String description, String updatedAt)throws IOException {
+    public void getSpecificValue(String value){
 
+}
+
+    // Method that will allow the program to update the description of any task
+    public void updateTask(String description, String updatedAt) throws IOException {
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
+
+        }
     }
 
     // Method that will allow the program to update the status of any task
@@ -115,8 +121,29 @@ public class TaskManager {
     }
 
     // Method that will allow the program to delete any task
-    public void deleteTask(TaskCollection tasks) throws IOException {
+    public void deleteTask(int taskId) throws IOException {
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+            boolean removed = this.tasks.removeIf(taskData -> taskData.getTaskID() == taskId);
 
+            if (removed) {
+                System.out.println("Task with id " + taskId + " has been deleted");
+            }else {
+                System.out.println("Unable to find the task");
+            }
+
+
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        TaskCollection taskCollection = new TaskCollection(this.tasks);
+
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
+            this.gson.toJson(taskCollection, bufferedWriter);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public Instant getInstant() {
