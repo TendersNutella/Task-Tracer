@@ -10,15 +10,50 @@ import java.util.List;
 public class TaskManager {
     private Instant instant = Instant.now();
     private Gson gson = new Gson();
-    private List<TaskData> tasks  ;
+    private List<TaskData> tasks;
 
     public TaskManager()  {
 
     }
 
     // Method that will allow the program to add a task to the JSON file
-    public static void addTask(String description) throws IOException {
+    public void addTask(String description) {
+        // Getting previous tasks
+        if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0) {
+            try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+                TaskCollection previousTasks = this.gson.fromJson(fileReader, TaskCollection.class);
+                if (previousTasks != null){
+                    this.tasks = previousTasks.getTasks();
+                }else {
+                    this.tasks = new ArrayList<>();
+                }
 
+                for (TaskData t : this.tasks){
+                    System.out.println(t);
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+                this.tasks = new ArrayList<>();
+            }
+        }
+
+        // Adding the new tasks to the list
+        this.tasks.add(new TaskData(
+                this.tasks.size() + 1,
+                description,
+                Status.Todo,
+                Instant.now().toString(),
+                Instant.now().toString()
+        ));
+
+        TaskCollection taskCollection = new TaskCollection(this.tasks);
+
+        // Write the previous tasks and the new tasks into the file
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
+            this.gson.toJson(taskCollection, bufferedWriter);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     // Method that will allow to list all the task
@@ -43,6 +78,7 @@ public class TaskManager {
             tasks = new ArrayList<>();
         }
     }
+
 
     // Method that will allow to get a specific task display
     public void displayTask(TaskCollection tasks){

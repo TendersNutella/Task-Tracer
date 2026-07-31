@@ -11,6 +11,7 @@ public class TaskTracer {
     public static void main(String[] args) {
 
         TaskManager taskManager = new TaskManager();
+        taskManager.addTask("Vendre colis");
         taskManager.listTasks();
 
 //        // Adding the already existing tasks to the list
