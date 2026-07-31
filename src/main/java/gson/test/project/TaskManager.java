@@ -81,8 +81,27 @@ public class TaskManager {
 
 
     // Method that will allow to get a specific task display
-    public void displayTask(TaskCollection tasks){
+    public void displayTask(int taskId){
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+            if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
+                this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+                TaskData taskToDisplay = this.tasks.stream()
+                        .filter(taskData -> taskData.getTaskID() == taskId)
+                        .findFirst()
+                        .orElse(null);
 
+                if (taskToDisplay != null){
+                    System.out.println(taskToDisplay);
+                }else {
+                    System.out.println("Unable to find the task with the id : " + taskId);
+                }
+            }else {
+                System.out.println("Unable to find the 'task.json' file or the file is empty");
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+            tasks = new ArrayList<>();
+        }
     }
 
     // Method that will allow the program to update the description of any task

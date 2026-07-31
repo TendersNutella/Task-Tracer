@@ -13,64 +13,9 @@ public class TaskTracer {
         TaskManager taskManager = new TaskManager();
         taskManager.addTask("Vendre colis");
         taskManager.listTasks();
+        taskManager.displayTask(15);
 
-//        // Adding the already existing tasks to the list
-//        if(file.exists() && file.length() > 0) {
-//            try(FileReader fileReader = new FileReader(file)) {
-//                TaskCollection existingTask = gson.fromJson(fileReader, TaskCollection.class);
-//                if(existingTask != null){
-//                    tasks = existingTask.getTasks();
-//                }else{
-//                    tasks = new ArrayList<>();
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//                tasks = new ArrayList<>();
-//            }
-//        }else {
-//            tasks = new ArrayList<>();
-//        }
-//
-//        for(TaskData tp : tasks){
-//            System.out.println(tp);
-//        }
-//
-//        // Adding a task to the List
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.print("> ");
-//        String description = scanner.nextLine();
-//
-//        tasks.add(new TaskData(
-//                tasks.size() + 1,
-//                description,
-//                Status.Todo,
-//                Instant.now().toString(),
-//                Instant.now().toString()
-//        ));
-//
-//        TaskCollection task = new TaskCollection(tasks);
-//
-//        // Write to the "tasks.json" file
-//        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("tasks.json"))) {
-//            gson.toJson(task, bufferedWriter);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // Get a specific task from the "tasks.json" file
-//        int iDRecherche = 2;
-//        TaskData taskFound = tasks.stream()
-//                .filter(td -> td.getTaskID() == iDRecherche)
-//                .findFirst()
-//                .orElse(null);
-//
-//        if (taskFound != null) {
-//            System.out.println(taskFound);
-//        } else {
-//            System.out.println("Tache introuvable");
-//        }
-//
-//
+
 //        // Get a specific value from the tasks
 //        String getDescription = tasks.stream()
 //                .filter(td -> td.getTaskID() == iDRecherche)
