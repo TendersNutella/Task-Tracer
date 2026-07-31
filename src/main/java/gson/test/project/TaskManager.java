@@ -48,9 +48,9 @@ public class TaskManager {
                 Instant.now().toString()
         ));
 
+        // Write the previous tasks and the new tasks into the file
         TaskCollection taskCollection = new TaskCollection(this.tasks);
 
-        // Write the previous tasks and the new tasks into the file
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
             this.gson.toJson(taskCollection, bufferedWriter);
         }catch (IOException e){
@@ -106,11 +106,11 @@ public class TaskManager {
         }
     }
 
-    public String getSpecificValue(String value, int taskID){
+    public String getSpecificValue(String value, int taskID) {
         // TODO : work on the behavior of this method and add a selector of a specific value
         //  like a switch case that let you choose between getting the description, the id, or even
         //  the date where the task was created
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
             this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
             this.scanner = new Scanner(System.in);
 
@@ -121,7 +121,7 @@ public class TaskManager {
                     .orElse("Unable to find the task");
 
             return value;
-        }catch (IOException e){
+        }catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -129,15 +129,57 @@ public class TaskManager {
     }
 
     // Method that will allow the program to update the description of any task
-    public void updateTask(String description, String updatedAt) throws IOException {
+    public void updateTask(String description, int taskId) {
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
+            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
 
+            for (TaskData td : this.tasks) {
+                if (td.getTaskID() == taskId) {
+                    td.setDescription(description);
+                    td.setUpdatedAt(Instant.now().toString());
+                    System.out.println("Task description has been updated");
+                    break;
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        // Write the previous tasks and the new tasks into the file
+        TaskCollection taskCollection = new TaskCollection(this.tasks);
+
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
+            this.gson.toJson(taskCollection, bufferedWriter);
+        }catch (IOException e){
+            e.printStackTrace();
         }
     }
 
     // Method that will allow the program to update the status of any task
-    public void updateTask(Status status, String updatedAt) throws IOException {
+    public void updateTask(Status status, int taskId) throws IOException {
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
+            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
 
+            for (TaskData td : this.tasks) {
+                if (td.getTaskID() == taskId) {
+                    td.setStatus(status);
+                    td.setUpdatedAt(Instant.now().toString());
+                    System.out.println("Task status has been updated");
+                    break;
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        // Write the previous tasks and the new tasks into the file
+        TaskCollection taskCollection = new TaskCollection(this.tasks);
+
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
+            this.gson.toJson(taskCollection, bufferedWriter);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     // Method that will allow the program to delete any task
