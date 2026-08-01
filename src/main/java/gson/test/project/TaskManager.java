@@ -6,12 +6,18 @@ import java.io.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class TaskManager {
-    private Instant instant = Instant.now();
     private final Gson gson = new Gson();
     private List<TaskProperties> tasks;
+    private List<TaskProperties> loadTasks(){
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
+            return gson.fromJson(fileReader, TasksCollection.class).getTasks();
+        } catch (IOException e){
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
 
     public TaskManager() throws FileNotFoundException {
 
@@ -47,62 +53,101 @@ public class TaskManager {
                 Instant.now().toString()
         ));
 
-        // Write the previous tasks and the new tasks into the file
-        TasksCollection taskCollection = new TasksCollection(this.tasks);
-
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
-            this.gson.toJson(taskCollection, bufferedWriter);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
+        writeToJson();
     }
 
     // Method that will allow to list all the task
     public void listTasks(){
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-            if (CommonConstant.JSON_FILE_PATH.exists()) {
-                this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
+        if (CommonConstant.JSON_FILE_PATH.exists()) {
+            this.tasks = loadTasks();
 
-                for (TaskProperties t : this.tasks){
-                    System.out.println(t);
-                }
-
-            } else if (CommonConstant.JSON_FILE_PATH.length() <= 0) {
-                System.out.println("'tasks.json' is empty");
-                tasks = new ArrayList<>();
-            } else {
-                System.out.println("Unable to find 'tasks.json' file");
-                tasks = new ArrayList<>();
+            for (TaskProperties t : this.tasks){
+                System.out.println(t);
             }
-        }catch (IOException e){
-            e.printStackTrace();
+
+        } else if (CommonConstant.JSON_FILE_PATH.length() <= 0) {
+            System.out.println("'tasks.json' is empty");
+            tasks = new ArrayList<>();
+        } else {
+            System.out.println("Unable to find 'tasks.json' file");
             tasks = new ArrayList<>();
         }
     }
 
-
     // Method that will allow to get a specific task display
     public void displayTask(int taskId){
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-            if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
-                this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
-                TaskProperties taskToDisplay = this.tasks.stream()
-                        .filter(taskProperties -> taskProperties.getTaskID() == taskId)
-                        .findFirst()
-                        .orElse(null);
+        if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
+            this.tasks = loadTasks();
+            TaskProperties taskToDisplay = this.tasks.stream()
+                    .filter(taskProperties -> taskProperties.getTaskID() == taskId)
+                    .findFirst()
+                    .orElse(null);
 
-                if (taskToDisplay != null){
-                    System.out.println(taskToDisplay);
-                }else {
-                    System.out.println("Unable to find the task with the id : " + taskId);
-                }
+            if (taskToDisplay != null){
+                System.out.println(taskToDisplay);
             }else {
-                System.out.println("Unable to find the 'task.json' file or the file is empty");
+                System.out.println("Unable to find the task with the id : " + taskId);
             }
-        }catch (IOException e){
-            e.printStackTrace();
-            tasks = new ArrayList<>();
+        }else {
+            System.out.println("Unable to find the 'task.json' file or the file is empty");
         }
+    }
+
+    // TODO : This is working fine but it prints all the tasks with the status asked in one line. Need to change the behavior of this method
+    public void listTasksByStatus(Status status){
+        this.tasks = loadTasks();
+        List<TaskProperties> tasksDone = this.tasks.stream()
+                .filter(taskProperties -> taskProperties.getStatus() == status)
+                .toList();
+
+        System.out.println(tasksDone);
+    }
+
+
+    // Method that will allow the program to update the description of any task
+    public void updateTask(String description, int taskId) {
+        this.tasks = loadTasks();
+
+        for (TaskProperties td : this.tasks) {
+            if (td.getTaskID() == taskId) {
+                td.setDescription(description);
+                td.setUpdatedAt(Instant.now().toString());
+                System.out.println("Task description has been updated");
+                break;
+            }
+        }
+
+        writeToJson();
+    }
+
+    // Method that will allow the program to update the status of any task
+    public void updateTask(Status status, int taskId) {
+        this.tasks = loadTasks();
+
+        for (TaskProperties td : this.tasks) {
+            if (td.getTaskID() == taskId) {
+                td.setStatus(status);
+                td.setUpdatedAt(Instant.now().toString());
+                System.out.println("Task status has been updated");
+                break;
+            }
+        }
+
+        writeToJson();
+    }
+
+    // Method that will allow the program to delete any task
+    public void deleteTask(int taskId) {
+        this.tasks = loadTasks();
+        boolean removed = this.tasks.removeIf(taskProperties -> taskProperties.getTaskID() == taskId);
+
+        if (removed) {
+            System.out.println("Task with id " + taskId + " has been deleted");
+        }else {
+            System.out.println("Unable to find the task");
+        }
+
+        writeToJson();
     }
 
     public int getNextAvailableId() {
@@ -127,112 +172,13 @@ public class TaskManager {
         }
     }
 
-    public String getSpecificValue(String value, int taskID) {
-        // TODO : work on the behavior of this method and add a selector of a specific value
-        //  like a switch case that let you choose between getting the description, the id, or even
-        //  the date where the task was created
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
-            Scanner scanner = new Scanner(System.in);
-
-            value = this.tasks.stream()
-                    .filter(taskProperties -> taskProperties.getTaskID() == taskID)
-                    .findFirst()
-                    .map(TaskProperties::getDescription)
-                    .orElse("Unable to find the task");
-
-            return value;
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return "Unable to get the value asked";
-    }
-
-    // Method that will allow the program to update the description of any task
-    public void updateTask(String description, int taskId) {
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
-
-            for (TaskProperties td : this.tasks) {
-                if (td.getTaskID() == taskId) {
-                    td.setDescription(description);
-                    td.setUpdatedAt(Instant.now().toString());
-                    System.out.println("Task description has been updated");
-                    break;
-                }
-            }
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        // Write the previous tasks and the new tasks into the file
-        TasksCollection taskCollection = new TasksCollection(this.tasks);
+    public void writeToJson(){
+        TasksCollection tasksCollection = new TasksCollection(this.tasks);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
-            this.gson.toJson(taskCollection, bufferedWriter);
+            this.gson.toJson(tasksCollection, bufferedWriter);
         }catch (IOException e){
             e.printStackTrace();
         }
-    }
-
-    // Method that will allow the program to update the status of any task
-    public void updateTask(Status status, int taskId) throws IOException {
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
-
-            for (TaskProperties td : this.tasks) {
-                if (td.getTaskID() == taskId) {
-                    td.setStatus(status);
-                    td.setUpdatedAt(Instant.now().toString());
-                    System.out.println("Task status has been updated");
-                    break;
-                }
-            }
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-
-        // Write the previous tasks and the new tasks into the file
-        TasksCollection taskCollection = new TasksCollection(this.tasks);
-
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
-            this.gson.toJson(taskCollection, bufferedWriter);
-        }catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
-    // Method that will allow the program to delete any task
-    public void deleteTask(int taskId) throws IOException {
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
-            boolean removed = this.tasks.removeIf(taskProperties -> taskProperties.getTaskID() == taskId);
-
-            if (removed) {
-                System.out.println("Task with id " + taskId + " has been deleted");
-            }else {
-                System.out.println("Unable to find the task");
-            }
-
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        TasksCollection taskCollection = new TasksCollection(this.tasks);
-
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
-            this.gson.toJson(taskCollection, bufferedWriter);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Instant getInstant() {
-        return instant;
-    }
-
-    public void setInstant(Instant instant) {
-        this.instant = instant;
     }
 }

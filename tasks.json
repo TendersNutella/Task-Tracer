@@ -24,7 +24,7 @@
     {
       "taskID": 5,
       "description": "test",
-      "status": "Todo",
+      "status": "Done",
       "createdAt": "2026-08-01T12:44:27.661229500Z",
       "updatedAt": "2026-08-01T12:44:27.661229500Z"
     }
