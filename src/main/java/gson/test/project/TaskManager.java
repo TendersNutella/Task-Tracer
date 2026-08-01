@@ -10,11 +10,10 @@ import java.util.Scanner;
 
 public class TaskManager {
     private Instant instant = Instant.now();
-    private Gson gson = new Gson();
-    private List<TaskData> tasks;
-    private Scanner scanner;
+    private final Gson gson = new Gson();
+    private List<TaskProperties> tasks;
 
-    public TaskManager()  {
+    public TaskManager() throws FileNotFoundException {
 
     }
 
@@ -23,14 +22,14 @@ public class TaskManager {
         // Getting previous tasks
         if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0) {
             try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-                TaskCollection previousTasks = this.gson.fromJson(fileReader, TaskCollection.class);
+                TasksCollection previousTasks = this.gson.fromJson(fileReader, TasksCollection.class);
                 if (previousTasks != null){
                     this.tasks = previousTasks.getTasks();
                 }else {
                     this.tasks = new ArrayList<>();
                 }
 
-                for (TaskData t : this.tasks){
+                for (TaskProperties t : this.tasks){
                     System.out.println(t);
                 }
             }catch (IOException e){
@@ -38,10 +37,10 @@ public class TaskManager {
                 this.tasks = new ArrayList<>();
             }
         }
-
         // Adding the new tasks to the list
-        this.tasks.add(new TaskData(
-                this.tasks.size() + 1,
+        int id = getNextAvailableId();
+        this.tasks.add(new TaskProperties(
+                id,
                 description,
                 Status.Todo,
                 Instant.now().toString(),
@@ -49,7 +48,7 @@ public class TaskManager {
         ));
 
         // Write the previous tasks and the new tasks into the file
-        TaskCollection taskCollection = new TaskCollection(this.tasks);
+        TasksCollection taskCollection = new TasksCollection(this.tasks);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
             this.gson.toJson(taskCollection, bufferedWriter);
@@ -62,9 +61,9 @@ public class TaskManager {
     public void listTasks(){
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
             if (CommonConstant.JSON_FILE_PATH.exists()) {
-                this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+                this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
 
-                for (TaskData t : this.tasks){
+                for (TaskProperties t : this.tasks){
                     System.out.println(t);
                 }
 
@@ -86,9 +85,9 @@ public class TaskManager {
     public void displayTask(int taskId){
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
             if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
-                this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
-                TaskData taskToDisplay = this.tasks.stream()
-                        .filter(taskData -> taskData.getTaskID() == taskId)
+                this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
+                TaskProperties taskToDisplay = this.tasks.stream()
+                        .filter(taskProperties -> taskProperties.getTaskID() == taskId)
                         .findFirst()
                         .orElse(null);
 
@@ -106,18 +105,40 @@ public class TaskManager {
         }
     }
 
+    public int getNextAvailableId() {
+        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
+            TasksCollection existingTasks = gson.fromJson(fileReader, TasksCollection.class);
+            List<TaskProperties> currentTasks;
+
+            if (existingTasks != null){
+                currentTasks = existingTasks.getTasks();
+            }else {
+                currentTasks = new ArrayList<>();
+            }
+
+            return  currentTasks.stream()
+                    .mapToInt(TaskProperties::getTaskID)
+                    .max()
+                    .orElse(0) + 1;
+
+        }catch (IOException e) {
+            e.printStackTrace();
+            return 1;
+        }
+    }
+
     public String getSpecificValue(String value, int taskID) {
         // TODO : work on the behavior of this method and add a selector of a specific value
         //  like a switch case that let you choose between getting the description, the id, or even
         //  the date where the task was created
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
-            this.scanner = new Scanner(System.in);
+            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
+            Scanner scanner = new Scanner(System.in);
 
             value = this.tasks.stream()
-                    .filter(taskData -> taskData.getTaskID() == taskID)
+                    .filter(taskProperties -> taskProperties.getTaskID() == taskID)
                     .findFirst()
-                    .map(TaskData::getDescription)
+                    .map(TaskProperties::getDescription)
                     .orElse("Unable to find the task");
 
             return value;
@@ -131,9 +152,9 @@ public class TaskManager {
     // Method that will allow the program to update the description of any task
     public void updateTask(String description, int taskId) {
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
 
-            for (TaskData td : this.tasks) {
+            for (TaskProperties td : this.tasks) {
                 if (td.getTaskID() == taskId) {
                     td.setDescription(description);
                     td.setUpdatedAt(Instant.now().toString());
@@ -146,7 +167,7 @@ public class TaskManager {
         }
 
         // Write the previous tasks and the new tasks into the file
-        TaskCollection taskCollection = new TaskCollection(this.tasks);
+        TasksCollection taskCollection = new TasksCollection(this.tasks);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
             this.gson.toJson(taskCollection, bufferedWriter);
@@ -158,9 +179,9 @@ public class TaskManager {
     // Method that will allow the program to update the status of any task
     public void updateTask(Status status, int taskId) throws IOException {
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
+            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
 
-            for (TaskData td : this.tasks) {
+            for (TaskProperties td : this.tasks) {
                 if (td.getTaskID() == taskId) {
                     td.setStatus(status);
                     td.setUpdatedAt(Instant.now().toString());
@@ -173,7 +194,7 @@ public class TaskManager {
         }
 
         // Write the previous tasks and the new tasks into the file
-        TaskCollection taskCollection = new TaskCollection(this.tasks);
+        TasksCollection taskCollection = new TasksCollection(this.tasks);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
             this.gson.toJson(taskCollection, bufferedWriter);
@@ -185,8 +206,8 @@ public class TaskManager {
     // Method that will allow the program to delete any task
     public void deleteTask(int taskId) throws IOException {
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-            this.tasks = gson.fromJson(fileReader, TaskCollection.class).getTasks();
-            boolean removed = this.tasks.removeIf(taskData -> taskData.getTaskID() == taskId);
+            this.tasks = gson.fromJson(fileReader, TasksCollection.class).getTasks();
+            boolean removed = this.tasks.removeIf(taskProperties -> taskProperties.getTaskID() == taskId);
 
             if (removed) {
                 System.out.println("Task with id " + taskId + " has been deleted");
@@ -194,16 +215,15 @@ public class TaskManager {
                 System.out.println("Unable to find the task");
             }
 
-
         }catch (IOException e) {
             e.printStackTrace();
         }
 
-        TaskCollection taskCollection = new TaskCollection(this.tasks);
+        TasksCollection taskCollection = new TasksCollection(this.tasks);
 
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
             this.gson.toJson(taskCollection, bufferedWriter);
-        }catch (IOException e){
+        }catch (IOException e) {
             e.printStackTrace();
         }
     }
