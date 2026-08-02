@@ -33,10 +33,6 @@ public class TaskManager {
                 }else {
                     this.tasks = new ArrayList<>();
                 }
-
-                for (TaskProperties t : this.tasks){
-                    System.out.println(t);
-                }
             }catch (IOException e){
                 e.printStackTrace();
                 this.tasks = new ArrayList<>();
