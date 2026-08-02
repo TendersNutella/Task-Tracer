@@ -1,13 +1,13 @@
 package gson.test.project;
 
-public class TaskData {
+public class TaskProperties {
     private final int taskID;
     private String description;
     private Status status;
     private final String createdAt;
     private String updatedAt;
 
-    public TaskData(int taskID, String description, Status status, String createdAt, String updatedAt) {
+    public TaskProperties(int taskID, String description, Status status, String createdAt, String updatedAt) {
         this.taskID = taskID;
         this.description = description;
         this.status = status;
@@ -49,7 +49,7 @@ public class TaskData {
 
     @Override
     public String toString() {
-        return String.format("[%d] %s | %s | createdAt: %s | updatedAt %s",
+        return String.format("[%d] %s | %s | %s | %s",
                 taskID, description, status, createdAt, updatedAt);
     }
 }

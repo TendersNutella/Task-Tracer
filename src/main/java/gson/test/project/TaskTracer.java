@@ -1,121 +1,84 @@
 package gson.test.project;
-
-import com.google.gson.*;
 import java.io.*;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
+
 public class TaskTracer {
-    public static void main(String[] args) {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        File file = new File("tasks.json");
-
-        List<TaskData> tasks;
-
-        // Adding the already existing tasks to the list
-        if(file.exists() && file.length() > 0) {
-            try(FileReader fileReader = new FileReader(file)) {
-                TaskCollection existingTask = gson.fromJson(fileReader, TaskCollection.class);
-                if(existingTask != null){
-                    tasks = existingTask.getTasks();
-                }else{
-                    tasks = new ArrayList<>();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                tasks = new ArrayList<>();
-            }
-        }else {
-            tasks = new ArrayList<>();
-        }
-
-        for(TaskData tp : tasks){
-            System.out.println(tp);
-        }
-
-        // Adding a task to the List
+    public static void main(String[] args) throws IOException {
+        final TaskManager taskManager = new TaskManager();
         Scanner scanner = new Scanner(System.in);
-        System.out.print("> ");
-        String description = scanner.nextLine();
+        String taskDescriptionInput;
+        boolean isRunning = true;
+        int taskId;
 
-        tasks.add(new TaskData(
-                tasks.size() + 1,
-                description,
-                Status.Todo,
-                Instant.now().toString(),
-                Instant.now().toString()
-        ));
+        while (isRunning) {
+            taskManager.listTasks();
+            System.out.println("\n");
 
-        TaskCollection task = new TaskCollection(tasks);
+            System.out.println("Welcome to Task-Tracer");
+            System.out.println("Enter your command below : ");
+            System.out.print(">  ");
+            String commandInput = scanner.nextLine();
 
-        // Write to the "tasks.json" file
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("tasks.json"))) {
-            gson.toJson(task, bufferedWriter);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Get a specific task from the "tasks.json" file
-        int iDRecherche = 2;
-        TaskData taskFound = tasks.stream()
-                .filter(td -> td.getTaskID() == iDRecherche)
-                .findFirst()
-                .orElse(null);
-
-        if (taskFound != null) {
-            System.out.println(taskFound);
-        } else {
-            System.out.println("Tache introuvable");
-        }
-
-
-        // Get a specific value from the tasks
-        String getDescription = tasks.stream()
-                .filter(td -> td.getTaskID() == iDRecherche)
-                .findFirst()
-                .map(TaskData::getDescription)
-                .orElse("Tache introuvable");
-
-        System.out.println(getDescription);
-
-        // Update a specific value
-        int idToUpdate = 6;
-        String newValue = "Nouvelle valeur";
-
-        for(TaskData td : tasks){
-            if (td.getTaskID() == idToUpdate){
-                td.setDescription(newValue);
-                td.setUpdatedAt(Instant.now().toString());
-                break;
+            if (commandInput.equalsIgnoreCase("exit")) {
+                isRunning = false;
             }
-        }
 
-        TaskCollection taskCollection = new TaskCollection(tasks);
+            if (commandInput.equalsIgnoreCase("task-cli add")) {
+                System.out.println("Enter the description of the task");
+                System.out.print("> ");
+                taskDescriptionInput = scanner.nextLine();
+                taskManager.addTask(taskDescriptionInput);
+            }
 
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("tasks.json"))) {
-            gson.toJson(taskCollection, bufferedWriter);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            if (commandInput.equalsIgnoreCase("task-cli update")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                scanner.nextLine();
 
-        // Delete an object
-        int idToDelete = 9;
-        boolean removed = tasks.removeIf(td -> td.getTaskID() == idToDelete);
+                System.out.println("Enter the description of the task");
+                System.out.print("> ");
+                taskDescriptionInput = scanner.nextLine();
+                taskManager.updateTask(taskDescriptionInput, taskId);
+            }
 
-        if (removed) {
-            System.out.println("Tache supprimée");
-        }else {
-            System.out.println("Tache introuvable");
-        }
+            if (commandInput.equalsIgnoreCase("task-cli delete")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.deleteTask(taskId);
+            }
 
-       taskCollection = new TaskCollection(tasks);
+            if (commandInput.equalsIgnoreCase("task-cli mark-in-progress")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.updateTask(Status.InProgress, taskId);
+            }
 
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("tasks.json"))) {
-            gson.toJson(taskCollection, bufferedWriter);
-        } catch (IOException e) {
-            e.printStackTrace();
+            if (commandInput.equalsIgnoreCase("task-cli mark-done")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.updateTask(Status.Done, taskId);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list")) {
+                taskManager.listTasks();
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-todo")) {
+                taskManager.listTasksByStatus(Status.Todo);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-in-progress")) {
+                taskManager.listTasksByStatus(Status.InProgress);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-done")) {
+                taskManager.listTasksByStatus(Status.Done);
+            }
         }
     }
 }
