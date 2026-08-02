@@ -1,7 +1,6 @@
 package gson.test.project;
 
 import com.google.gson.Gson;
-
 import java.io.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -75,6 +74,15 @@ public class TaskManager {
     }
 
     // Method that will allow to get a specific task display
+    public void listTasksByStatus(Status status){
+        this.tasks = loadTasks();
+        List<TaskProperties> tasksDone = this.tasks.stream()
+                .filter(taskProperties -> taskProperties.getStatus() == status)
+                .toList();
+
+        tasksDone.forEach(System.out::println);
+    }
+
     public void displayTask(int taskId){
         if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
             this.tasks = loadTasks();
@@ -92,17 +100,6 @@ public class TaskManager {
             System.out.println("Unable to find the 'task.json' file or the file is empty");
         }
     }
-
-    // TODO : This is working fine but it prints all the tasks with the status asked in one line. Need to change the behavior of this method
-    public void listTasksByStatus(Status status){
-        this.tasks = loadTasks();
-        List<TaskProperties> tasksDone = this.tasks.stream()
-                .filter(taskProperties -> taskProperties.getStatus() == status)
-                .toList();
-
-        System.out.println(tasksDone);
-    }
-
 
     // Method that will allow the program to update the description of any task
     public void updateTask(String description, int taskId) {
@@ -181,4 +178,5 @@ public class TaskManager {
             e.printStackTrace();
         }
     }
+
 }

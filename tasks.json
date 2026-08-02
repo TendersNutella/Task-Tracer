@@ -24,9 +24,16 @@
     {
       "taskID": 5,
       "description": "test",
-      "status": "Done",
+      "status": "InProgress",
       "createdAt": "2026-08-01T12:44:27.661229500Z",
       "updatedAt": "2026-08-01T12:44:27.661229500Z"
+    },
+    {
+      "taskID": 6,
+      "description": "task-cli add",
+      "status": "Done",
+      "createdAt": "2026-08-01T23:53:16.892754Z",
+      "updatedAt": "2026-08-02T00:16:12.699734200Z"
     }
   ]
 }

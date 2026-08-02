@@ -5,24 +5,80 @@ import java.util.Scanner;
 
 public class TaskTracer {
     public static void main(String[] args) throws IOException {
+        final TaskManager taskManager = new TaskManager();
         Scanner scanner = new Scanner(System.in);
-        String[] commands = {
-          "task-cli add",
-          "task-cli update",
-          "task-cli delete",
-          "task-cli mark-in-progress",
-          "task-cli mark-done",
-          "task-cli list",
-          "task-cli list done",
-          "task-cli list todo",
-          "task-cli list in-progress",
-        };
+        String taskDescriptionInput;
+        boolean isRunning = true;
+        int taskId;
 
-//        String commandInput = scanner.nextLine();
-//        int idInput = scanner.nextInt();
+        while (isRunning) {
+            taskManager.listTasks();
+            System.out.println("\n");
 
-        TaskManager taskManager = new TaskManager();
-        taskManager.deleteTask(6);
+            System.out.println("Welcome to Task-Tracer");
+            System.out.println("Enter your command below : ");
+            System.out.print(">  ");
+            String commandInput = scanner.nextLine();
 
+            if (commandInput.equalsIgnoreCase("exit")) {
+                isRunning = false;
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli add")) {
+                System.out.println("Enter the description of the task");
+                System.out.print("> ");
+                taskDescriptionInput = scanner.nextLine();
+                taskManager.addTask(taskDescriptionInput);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli update")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                scanner.nextLine();
+
+                System.out.println("Enter the description of the task");
+                System.out.print("> ");
+                taskDescriptionInput = scanner.nextLine();
+                taskManager.updateTask(taskDescriptionInput, taskId);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli delete")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.deleteTask(taskId);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli mark-in-progress")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.updateTask(Status.InProgress, taskId);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli mark-done")) {
+                System.out.println("Enter the id of the task");
+                System.out.print("> ");
+                taskId = scanner.nextInt();
+                taskManager.updateTask(Status.Done, taskId);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list")) {
+                taskManager.listTasks();
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-todo")) {
+                taskManager.listTasksByStatus(Status.Todo);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-in-progress")) {
+                taskManager.listTasksByStatus(Status.InProgress);
+            }
+
+            if (commandInput.equalsIgnoreCase("task-cli list-done")) {
+                taskManager.listTasksByStatus(Status.Done);
+            }
+        }
     }
 }
