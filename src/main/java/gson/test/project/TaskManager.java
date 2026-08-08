@@ -5,42 +5,54 @@ import java.io.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class TaskManager {
     private final Gson gson = new Gson();
     private List<TaskProperties> tasks;
-    private List<TaskProperties> loadTasks(){
+    private List<TaskProperties> loadTasks() {
         try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            return gson.fromJson(fileReader, TasksCollection.class).getTasks();
-        } catch (IOException e){
+            TasksCollection tasksCollection = gson.fromJson(fileReader, TasksCollection.class);
+            List<TaskProperties> tasks;
+
+            if (tasksCollection != null) {
+                tasks = tasksCollection.getTasks();
+            } else {
+                tasks = new ArrayList<>();
+            }
+
+            if (tasks.isEmpty()) {
+                System.out.println("No task listed in the JSON file");
+            }
+
+            return tasks;
+
+        } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
         }
     }
 
-    public TaskManager() throws FileNotFoundException {
+    public TaskManager() {
 
     }
 
     // Method that will allow the program to add a task to the JSON file
     public void addTask(String description) {
+
         // Getting previous tasks
-        if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0) {
-            try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)){
-                TasksCollection previousTasks = this.gson.fromJson(fileReader, TasksCollection.class);
-                if (previousTasks != null){
-                    this.tasks = previousTasks.getTasks();
-                }else {
-                    this.tasks = new ArrayList<>();
-                }
-            }catch (IOException e){
-                e.printStackTrace();
-                this.tasks = new ArrayList<>();
-            }
-        }
+        TasksCollection previousTasks = new TasksCollection(this.tasks);
+        this.tasks = previousTasks.getTasks();
+
+//        Error handling just in case, but I don't think it is really necessary since
+//        this method will add tasks to the JSON file previous tasks or not
+//        if (!this.tasks.isEmpty()){
+//            System.out.println("No previous tasks listed");
+//        }
+
         // Adding the new tasks to the list
         int id = getNextAvailableId();
-        this.tasks.add(new TaskProperties(
+        this.tasks.add(new TaskProperties (
                 id,
                 description,
                 Status.Todo,
@@ -52,48 +64,40 @@ public class TaskManager {
     }
 
     // Method that will allow to list all the task
-    public void listTasks(){
-        if (CommonConstant.JSON_FILE_PATH.exists()) {
-            this.tasks = loadTasks();
+    public void listTasks() {
+        this.tasks = loadTasks();
 
-            for (TaskProperties t : this.tasks){
-                System.out.println(t);
-            }
-
-        } else if (CommonConstant.JSON_FILE_PATH.length() <= 0) {
-            System.out.println("'tasks.json' is empty");
-            tasks = new ArrayList<>();
-        } else {
-            System.out.println("Unable to find 'tasks.json' file");
-            tasks = new ArrayList<>();
+        for (TaskProperties t : this.tasks) {
+            System.out.println(t);
         }
     }
 
     // Method that will allow to get a specific task display
-    public void listTasksByStatus(Status status){
+    public void listTasksByStatus(Status status) {
         this.tasks = loadTasks();
-        List<TaskProperties> tasksDone = this.tasks.stream()
+        List<TaskProperties> tasksListedAsDone = this.tasks.stream()
                 .filter(taskProperties -> taskProperties.getStatus() == status)
                 .toList();
 
-        tasksDone.forEach(System.out::println);
+        if (tasksListedAsDone.isEmpty()) {
+            System.out.println("No tasks as 'Done' listed");
+        }else {
+            tasksListedAsDone.forEach(System.out::println);
+        }
     }
 
-    public void displayTask(int taskId){
-        if (CommonConstant.JSON_FILE_PATH.exists() && CommonConstant.JSON_FILE_PATH.length() > 0){
-            this.tasks = loadTasks();
-            TaskProperties taskToDisplay = this.tasks.stream()
-                    .filter(taskProperties -> taskProperties.getTaskID() == taskId)
-                    .findFirst()
-                    .orElse(null);
+    // Method that is used to display a single task
+    public void displayTask(int taskId) {
+        this.tasks = loadTasks();
+        TaskProperties taskToDisplay = this.tasks.stream()
+                .filter(taskProperties -> taskProperties.getTaskID() == taskId)
+                .findFirst()
+                .orElse(null);
 
-            if (taskToDisplay != null){
-                System.out.println(taskToDisplay);
-            }else {
-                System.out.println("Unable to find the task with the id : " + taskId);
-            }
+        if (taskToDisplay != null) {
+            System.out.println(taskToDisplay);
         }else {
-            System.out.println("Unable to find the 'task.json' file or the file is empty");
+            System.out.println("Unable to find the task with the id : " + taskId);
         }
     }
 
@@ -143,36 +147,27 @@ public class TaskManager {
         writeToJson();
     }
 
+    // Method that return the taskId according to the id already attributed in the JSON file
     public int getNextAvailableId() {
-        try (FileReader fileReader = new FileReader(CommonConstant.JSON_FILE_PATH)) {
-            TasksCollection existingTasks = gson.fromJson(fileReader, TasksCollection.class);
-            List<TaskProperties> currentTasks;
+        this.tasks = loadTasks();
+        List<TaskProperties> currentTasks;
 
-            if (existingTasks != null){
-                currentTasks = existingTasks.getTasks();
-            }else {
-                currentTasks = new ArrayList<>();
-            }
+        currentTasks = Objects.requireNonNullElseGet(tasks, ArrayList::new);
 
-            return  currentTasks.stream()
-                    .mapToInt(TaskProperties::getTaskID)
-                    .max()
-                    .orElse(0) + 1;
-
-        }catch (IOException e) {
-            e.printStackTrace();
-            return 1;
-        }
+        return currentTasks.stream()
+                .mapToInt(TaskProperties::getTaskID)
+                .max()
+                .orElse(0) + 1;
     }
 
-    public void writeToJson(){
+    // Method used to write to the JSON file with a BufferWriter
+    public void writeToJson() {
         TasksCollection tasksCollection = new TasksCollection(this.tasks);
 
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))){
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(CommonConstant.JSON_FILE_PATH))) {
             this.gson.toJson(tasksCollection, bufferedWriter);
-        }catch (IOException e){
+        }catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 }

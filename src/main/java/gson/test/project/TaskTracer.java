@@ -11,7 +11,10 @@ public class TaskTracer {
         boolean isRunning = true;
         int taskId;
 
+        taskManager.displayTask(9);
+
         while (isRunning) {
+            System.out.println("All your tasks : ");
             taskManager.listTasks();
             System.out.println("\n");
 
