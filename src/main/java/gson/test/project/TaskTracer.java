@@ -1,5 +1,6 @@
 package gson.test.project;
 import java.io.*;
+import java.util.HashMap;
 import java.util.Scanner;
 
 
@@ -7,80 +8,77 @@ public class TaskTracer {
     public static void main(String[] args) throws IOException {
         final TaskManager taskManager = new TaskManager();
         Scanner scanner = new Scanner(System.in);
-        String taskDescriptionInput;
         boolean isRunning = true;
-        int taskId;
 
-        taskManager.displayTask(9);
+
+        System.out.println("Welcome to Task-Tracer");
 
         while (isRunning) {
-            System.out.println("All your tasks : ");
+            System.out.println("\nAll your tasks : ");
             taskManager.listTasks();
-            System.out.println("\n");
-
-            System.out.println("Welcome to Task-Tracer");
-            System.out.println("Enter your command below : ");
-            System.out.print(">  ");
+            System.out.println("\nEnter your command below : ");
+            System.out.print("> ");
             String commandInput = scanner.nextLine();
 
-            if (commandInput.equalsIgnoreCase("exit")) {
-                isRunning = false;
-            }
+            switch (commandInput.toLowerCase()) {
+                case "exit" -> isRunning = false;
 
-            if (commandInput.equalsIgnoreCase("task-cli add")) {
-                System.out.println("Enter the description of the task");
-                System.out.print("> ");
-                taskDescriptionInput = scanner.nextLine();
-                taskManager.addTask(taskDescriptionInput);
-            }
+                case "task-cli add" -> {
+                    System.out.println("Enter the description of the task");
+                    System.out.print("> ");
+                    String description = scanner.nextLine();
+                    taskManager.addTask(description);
+                }
 
-            if (commandInput.equalsIgnoreCase("task-cli update")) {
-                System.out.println("Enter the id of the task");
-                System.out.print("> ");
-                taskId = scanner.nextInt();
-                scanner.nextLine();
+                case "task-cli update" -> {
+                    System.out.println("Enter the id of the task");
+                    System.out.print("> ");
+                    int taskId = scanner.nextInt();
+                    scanner.nextLine();
+                    System.out.println("Enter the description of the task");
+                    System.out.print("> ");
+                    String description = scanner.nextLine();
+                    taskManager.updateTask(description, taskId);
+                }
 
-                System.out.println("Enter the description of the task");
-                System.out.print("> ");
-                taskDescriptionInput = scanner.nextLine();
-                taskManager.updateTask(taskDescriptionInput, taskId);
-            }
+                case "task-cli delete" -> {
+                    System.out.println("Enter the id of the task");
+                    System.out.print("> ");
+                    int taskId = scanner.nextInt();
+                    scanner.nextLine();
+                    taskManager.deleteTask(taskId);
+                }
 
-            if (commandInput.equalsIgnoreCase("task-cli delete")) {
-                System.out.println("Enter the id of the task");
-                System.out.print("> ");
-                taskId = scanner.nextInt();
-                taskManager.deleteTask(taskId);
-            }
+                case "task-cli mark-in-progress" -> {
+                    System.out.println("Enter the id of the task");
+                    System.out.print("> ");
+                    int taskId = scanner.nextInt();
+                    scanner.nextLine();
+                    taskManager.updateTask(Status.In_Progress, taskId);
+                }
 
-            if (commandInput.equalsIgnoreCase("task-cli mark-in-progress")) {
-                System.out.println("Enter the id of the task");
-                System.out.print("> ");
-                taskId = scanner.nextInt();
-                taskManager.updateTask(Status.InProgress, taskId);
-            }
+                case "task-cli mark-done" -> {
+                    System.out.println("Enter the id of the task");
+                    System.out.print("> ");
+                    int taskId = scanner.nextInt();
+                    scanner.nextLine();
+                    taskManager.updateTask(Status.Done, taskId);
+                }
 
-            if (commandInput.equalsIgnoreCase("task-cli mark-done")) {
-                System.out.println("Enter the id of the task");
-                System.out.print("> ");
-                taskId = scanner.nextInt();
-                taskManager.updateTask(Status.Done, taskId);
-            }
+                case "task-cli mark-not-done" -> {
+                    System.out.println("Enter the id of the task");
+                    System.out.print("> ");
+                    int taskId = scanner.nextInt();
+                    scanner.nextLine();
+                    taskManager.updateTask(Status.Not_Done, taskId);
+                }
 
-            if (commandInput.equalsIgnoreCase("task-cli list")) {
-                taskManager.listTasks();
-            }
+                case "task-cli list" -> taskManager.listTasks();
+                case "task-cli list-todo" -> taskManager.listTasksByStatus(Status.Todo);
+                case "task-cli list-in-progress" -> taskManager.listTasksByStatus(Status.In_Progress);
+                case "task-cli list-done" -> taskManager.listTasksByStatus(Status.Done);
 
-            if (commandInput.equalsIgnoreCase("task-cli list-todo")) {
-                taskManager.listTasksByStatus(Status.Todo);
-            }
-
-            if (commandInput.equalsIgnoreCase("task-cli list-in-progress")) {
-                taskManager.listTasksByStatus(Status.InProgress);
-            }
-
-            if (commandInput.equalsIgnoreCase("task-cli list-done")) {
-                taskManager.listTasksByStatus(Status.Done);
+                default -> System.out.println("Unknown command : " + commandInput);
             }
         }
     }
