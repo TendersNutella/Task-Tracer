@@ -1,7 +1,12 @@
 package gson.test.project;
 
+import com.google.gson.annotations.SerializedName;
+
 public enum Status {
     Todo,
-    InProgress,
+    @SerializedName("InProgress")
+    In_Progress,
+    @SerializedName("NotDone")
+    Not_Done,
     Done
 }

@@ -1,18 +1,27 @@
 package gson.test.project;
 
-public class TaskProperties {
-    private final int taskID;
+import java.util.List;
+
+public class Tasks {
+    private int taskID;
     private String description;
     private Status status;
-    private final String createdAt;
+    private String createdAt;
     private String updatedAt;
 
-    public TaskProperties(int taskID, String description, Status status, String createdAt, String updatedAt) {
+    public Tasks(){
+
+    }
+
+    public Tasks(int taskID, String description, Status status, String createdAt, String updatedAt) {
         this.taskID = taskID;
         this.description = description;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public Tasks(List<Tasks> tasks) {
     }
 
     public int getTaskID(){
@@ -36,7 +45,7 @@ public class TaskProperties {
     }
 
     public String getCreatedAt(){
-        return createdAt;
+        return this.createdAt;
     }
 
     public String getUpdatedAt(){
